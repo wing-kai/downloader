@@ -92,16 +92,17 @@ const downloader = (function() {
         return;
       }
 
+      const mimeType = imageType === 'png' ? 'image/png' : 'image/jpeg'
       const leftPage = getLeftPageCanvas();
       const rightPage = getRightPageCanvas();
 
       if (pageIndex > 0) {
-        toBlob.apply(rightPage, [downloadPage(pageIndex), 'image/png']);
-        toBlob.apply(leftPage, [downloadPage(pageIndex + 1), 'image/png']);
+        toBlob.apply(rightPage, [downloadPage(pageIndex), mimeType]);
+        toBlob.apply(leftPage, [downloadPage(pageIndex + 1), mimeType]);
         showTips.success('下载页面: ' + [pageIndex, pageIndex + 1].join(', '));
         pageIndex += 2;
       } else {
-        toBlob.apply(leftPage, [downloadPage(pageIndex), 'image/png']);
+        toBlob.apply(leftPage, [downloadPage(pageIndex), mimeType]);
         showTips.success('下载页面: ' + pageIndex);
         pageIndex += 1;
       }
