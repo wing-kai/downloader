@@ -42,7 +42,7 @@ const downloader = (function() {
 
   document.body.appendChild(iframe);
 
-  const ebiviewer = document.getElementById('ebiviewer'); // 获取阅读器的canvas元素
+  const viewerCanvas = document.querySelector('.viewer > canvas'); // 获取阅读器的canvas元素
 
   let pageHeight = 0; // 页面高度
   let pageWidth = 0; // 页面宽度
@@ -60,8 +60,8 @@ const downloader = (function() {
 
   const getLeftPageCanvas = function() {
     const tempCanvas = getTempCanvas();
-    const capture = ebiviewer.getContext('2d').getImageData(
-      (ebiviewer.width >> 1) - pageWidth + offset.width,
+    const capture = viewerCanvas.getContext('2d').getImageData(
+      (viewerCanvas.width >> 1) - pageWidth + offset.width,
       0,
       pageWidth,
       pageHeight
@@ -73,8 +73,8 @@ const downloader = (function() {
 
   const getRightPageCanvas = function() {
     const tempCanvas = getTempCanvas();
-    const capture = ebiviewer.getContext('2d').getImageData(
-      (ebiviewer.width >> 1) + 1 + offset.width,
+    const capture = viewerCanvas.getContext('2d').getImageData(
+      (viewerCanvas.width >> 1) + 1 + offset.width,
       0,
       pageWidth,
       pageHeight
@@ -123,12 +123,12 @@ const downloader = (function() {
     },
 
     getWidth(width = 0) {
-      pageWidth = width === 0 ? ebiviewer.width >> 1 : width;
+      pageWidth = width === 0 ? viewerCanvas.width >> 1 : width;
       showTips.success('设置页面宽度为: ' + pageWidth + 'px');
     },
 
     getHeight(height = 0) {
-      pageHeight = height === 0 ? ebiviewer.height : height;
+      pageHeight = height === 0 ? viewerCanvas.height : height;
       showTips.success('设置页面高度为: ' + pageHeight + 'px');
     },
 
@@ -136,13 +136,13 @@ const downloader = (function() {
       if (status === 'stop') {
         pageIndex = i;
         handleClick();
-        ebiviewer.addEventListener('click', handleClick);
+        viewerCanvas.addEventListener('click', handleClick);
         status = 'listening';
         return;
       }
 
       if (status === 'pause') {
-        ebiviewer.addEventListener('click', handleClick);
+        viewerCanvas.addEventListener('click', handleClick);
         status = 'listening';
         return;
       }
@@ -150,7 +150,7 @@ const downloader = (function() {
 
     pause() {
       if (status === 'listening') {
-        ebiviewer.removeEventListener('click', handleClick);
+        viewerCanvas.removeEventListener('click', handleClick);
         showTips.info('暂停监听于 ' + (pageIndex - 1));
         status = 'pause';
         return;
