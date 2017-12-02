@@ -6,7 +6,7 @@ const downloader = (function() {
     height: 0
   }
 
-  const rename = num => num > 9 ? '0' + num : '00' + num;
+  const rename = num => num > 99 ? num : num > 9 ? '0' + num : '00' + num
 
   const showTips = {
     info (msg) {
