@@ -1,0 +1,20 @@
+(function(s, e) {
+  return function(f) {
+    f(s, e)
+  }
+})()(function download(start, end) {
+  var imageNodes = document.getElementById('thumbnail-container').querySelectorAll('img');
+  var srcList = Array.prototype.slice.call(imageNodes, 0).map(function(img) { return img.dataset.src });
+  var startIndex = (start || 1) - 1;
+  var length = (end || srcList.length) - startIndex;
+
+  srcList.splice(startIndex, length).map(
+    function(src) {
+      var originSizeSrc = src.replace(/^https:\/\/t\.(.+)t\.jpg$/, 'https://i.$1.jpg');
+      var anchor = document.createElement('a');
+      anchor.href = originSizeSrc;
+      anchor.download = 'picture';
+      anchor.click();
+    }
+  )
+});

@@ -39,24 +39,23 @@ window.downloadImage = (function(window) {
       let context = imgDrawInfo[args[0].src].getContext('2d');
       __drawImage.apply(context, args);
 
-      // console.clear();
-      // console.log(`已获取${Object.keys(imgDrawInfo).length}张图片信息。`);
+      console.clear();
+      console.log(`已获取${Object.keys(imgDrawInfo).length}张图片信息。`);
     }
 
     return __drawImage.apply(this, args);
   }
 
   return function() {
-    return imgDrawInfo;
-    // Object.keys(imgDrawInfo).forEach(src => {
-    //   var fileName = src.replace(/^.+\/item\/xhtml\/(.+)\.xhtml.+$/, '$1');
-    //   var canvas = imgDrawInfo[src];
-    //   canvas.toBlob((function(fileName) {
-    //     return function(blob) {
-    //       downloadBlob(blob, fileName);
-    //     }
-    //   })(fileName), 'image/jpeg', 1);
-    // });
+    Object.keys(imgDrawInfo).forEach(src => {
+      var fileName = src.replace(/^.+(p_.+)\.xhtml.+$/, '$1') + '.jpg';
+      var canvas = imgDrawInfo[src];
+      canvas.toBlob((function(fileName) {
+        return function(blob) {
+          downloadBlob(blob, fileName);
+        }
+      })(fileName), 'image/jpeg', 1);
+    });
   }
 })(window);
 console.clear();
