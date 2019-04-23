@@ -1,23 +1,77 @@
-// nhentai download script
-// (function(a,c){return function(b){b(a,c)}})(/*这里填写要下载的开始页至结束页*/)(function(a,c){var b=document.getElementById("thumbnail-container").querySelectorAll("img"),b=Array.prototype.slice.call(b,0).map(function(a){return a.dataset.src});a=(a||1)-1;b.splice(a,(c||b.length)-a).map(function(a){a=a.replace(/^https:\/\/t\.(.+)t\.jpg$/,"https://i.$1.jpg");var b=document.createElement("a");b.href=a;b.download="picture";b.click()})});
+(function() {
+  const script = document.createElement('script')
+    script.src = 'https://cdn.jsdelivr.net/npm/jszip@3.2.1/dist/jszip.min.js'
+    script.onload = download
+    document.body.append(script)
+})();
 
-(function(s, e) {
-  return function(f) {
-    f(s, e)
+(function(start, end) {
+  const imageNodes = document.getElementById('thumbnail-container').querySelectorAll('img');
+  const srcList = [].map.call(imageNodes, img => img.dataset.src);
+
+  const startIndex = (start || 1) - 1;
+  const length = (end || (srcList.length)) - startIndex;
+  const blobList = [];
+
+  const rename = function(num) {
+    return num > 99 ? num : num > 9 ? '0' + num : '00' + num
   }
-})()(function download(start, end) {
-  var imageNodes = document.getElementById('thumbnail-container').querySelectorAll('img');
-  var srcList = Array.prototype.slice.call(imageNodes, 0).map(function(img) { return img.dataset.src });
-  var startIndex = (start || 1) - 1;
-  var length = (end || srcList.length) - startIndex;
 
-  srcList.splice(startIndex, length).map(
-    function(src) {
-      var originSizeSrc = src.replace(/^https:\/\/t\.(.+)t\.jpg$/, 'https://i.$1.jpg');
-      var anchor = document.createElement('a');
-      anchor.href = originSizeSrc;
-      anchor.download = 'picture';
-      anchor.click();
+  const requestImageBlob = function(src) {
+    const originSizeSrc = src.replace(/^https:\/\/t\.(.+)t\.jpg$/, 'https://i.$1.jpg');
+
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.responseType = 'blob'
+      xhr.open('GET', originSizeSrc)
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState !== 4) {
+          return
+        }
+
+        if (xhr.status === 200) {
+          return resolve(xhr.response)
+        }
+
+        reject(xhr.responseText || xhr.response)
+      }
+      xhr.send()
+    });
+  }
+
+  const promise = srcList.splice(startIndex, length).reduce((promise, src, index) => {
+    if (index === 0) {
+      return requestImageBlob(src)
     }
-  )
-});
+
+    return promise.then(blob => {
+      console.log((100 - parseInt((length - index) / length * 100)) + '% 下载');
+      blobList.push(blob);
+      return requestImageBlob(src)
+    });
+  }, null);
+
+  promise.then(lastBlob => {
+    blobList.push(lastBlob)
+    const Zip = new JSZip()
+
+    blobList.forEach((blob, index) => {
+      const prefix = blob.type.slice(6) === 'jpeg' ? '.jpg' : '.png'
+      Zip.file(rename(index++) + prefix, blob)
+    })
+
+    Zip.generateAsync({
+      type: "blob",
+      mimeType: "application/zip"
+    }).then(function(blob) {
+      const anchor = document.createElement("a");
+      const objectURL = window.URL.createObjectURL(blob);
+
+      anchor.download = document.getElementById('info').querySelector('h2').innerHTML + '.zip';
+      anchor.href = objectURL;
+      anchor.click();
+
+      window.URL.revokeObjectURL(objectURL);
+    });
+  });
+})();

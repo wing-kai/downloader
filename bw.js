@@ -6,6 +6,7 @@ window.downloadImage = (function(window) {
   var imgDrawInfo = {
     // [imgSrc]: HTMLCanvasElement
   };
+  var index = 0;
   var pageCount = 0;
   var promiseList = Promise.resolve();
 
@@ -47,15 +48,42 @@ window.downloadImage = (function(window) {
   }
 
   return function() {
-    Object.keys(imgDrawInfo).forEach(src => {
-      var fileName = src.replace(/^.+(p_.+)\.xhtml.+$/, '$1') + '.jpg';
-      var canvas = imgDrawInfo[src];
-      canvas.toBlob((function(fileName) {
-        return function(blob) {
-          downloadBlob(blob, fileName);
-        }
-      })(fileName), 'image/jpeg', 1);
-    });
+    const JSZip = window.JSZip
+    const Zip = new JSZip()
+
+    const promise = Object.keys(imgDrawInfo).reduce((promise, src) => {
+      const func = function(source) {
+        return new Promise(resolve => {
+          var canvas = imgDrawInfo[source];
+          canvas.toBlob(function(blob) {
+            Zip.file(rename(index++) + '.jpg', blob)
+            resolve()
+          }, 'image/jpeg', 1)
+        })
+      }
+
+      if (promise === null) {
+        return func(src)
+      }
+
+      return promise.then(() => func(src))
+    }, null)
+
+    promise.then(function() {
+      Zip.generateAsync({
+        type: "blob",
+        mimeType: "application/zip"
+      }).then(function(blob) {
+        const anchor = document.createElement("a");
+        const objectURL = window.URL.createObjectURL(blob);
+
+        anchor.download = 'xxx.zip';
+        anchor.href = objectURL;
+        anchor.click();
+
+        window.URL.revokeObjectURL(objectURL);
+      })
+    })
   }
 })(window);
 console.clear();
