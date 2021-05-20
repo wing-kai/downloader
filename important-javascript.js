@@ -1,5 +1,5 @@
 window.importantJavascriptFunction = {
-  createElement: document.createElement,
+  createElement: window.document.__proto__.createElement,
   toBlob: window.HTMLCanvasElement.prototype.toBlob,
   getImageData: window.CanvasRenderingContext2D.prototype.getImageData
 }
